@@ -1,0 +1,49 @@
+function (pixelCount) {
+
+  function makeGrid(quad, dir, size, pos=[0,0], offset=0) {
+  // Generates coordinate list for a square grid constructed from overlapping,
+  // perpendicular zig-zag patterns that skip every other grid position
+  //    quad:       The x-y coordinate plane quadrant (relative to grid center) 
+  //                  containing the first LED 
+  //    dir:        Does the string from first pixel travel horz (0) or vert (1) 
+  //    size:       Square grid dimension
+  //    pos:        World coordinates of first pixel in pixel grid units    
+  //    offset:     Is the very first pixel at grid corner (0) or one pixel oer (1)
+    xydir = {
+      1: [-1, 1],     // x,y relative direction of last vs first pixel in each
+      2: [1 , 1],     // Cartesian coordinate plane quadrant. Note that the 
+      3: [1, -1],     // positive Y axis in world coords extends downwards 
+      4: [-1,-1] }
+    var [xdir, ydir] = xydir[quad]
+    var [x0, y0]     = pos
+    grid1 = [], grid2 = []
+    for (i = 0; i < size; i++) {
+      for (j = offset; j < size; j+= 2) {
+        c0 = i                                // monotonic coordinate
+        d0 = i % 2 == 0 ? j : size - 1 - j    // zig-zag coordinate
+        d1 = size - 1 - d0                    // opposite zig-zag coordinate
+        if (dir == 1) {                              // First pixels in column 
+          grid1.push([c0*xdir + x0, d0*ydir + y0])   // First string half pattern
+          grid2.push([d1*xdir + x0, c0*ydir + y0])   // Second string half pattern
+        } else {                                     // First pixels in row
+          grid1.push([d0*xdir + x0, c0*ydir + y0])
+          grid2.push([c0*xdir + x0, d1*ydir + y0])
+        }
+      }
+    }
+    return grid1.concat(grid2)
+  }  // End function makeGrid                   
+                      
+   /** Define the specific matrix configuration for the pillow arrangement **/
+   quadrant = 4   // First pixel is in lower right quadrant (4)   
+   dir = 1        // First string segment in grid runs vertically
+   width = 10     // Size of each LED matrix grid
+   sep = -12      // Horizontal distance (in grid units) from Matrix 1 first pixel  
+                  //  to Matrix 2 first pixel. 
+  
+   rt = makeGrid(quadrant,dir,width,[0,0],0)    // Right pillow
+   lt = makeGrid(quadrant,dir,width,[sep,0],0)  // Left pillow
+
+  map = rt.concat(lt)  // Append coordinates, right pillow is wired first
+  return map           // Return coordinate array
+}
